@@ -1,4 +1,4 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 
 app = Flask(__name__)
 
@@ -30,10 +30,47 @@ def get_purchase_orders():
 @app.route('/purchase_orders/<int:id>')
 def get_purchase_orders_by_id(id):
     for purchase in purchase_orders:
-        if not purchase.get("id") == id:
-            return jsonify({"message": "Item not found"}), 404
+        if purchase.get("id") == id:
+            return jsonify(purchase)
 
-        return jsonify(purchase)
+    return jsonify({"message": "Item not found"}), 404
+
+
+@app.route('/purchase_orders', methods=['POST'])
+def create_purchase_orders():
+    request_data = request.get_json()
+    purchase_order = {
+        'id': request_data['id'],
+        'description': request_data['description'],
+        'items': []
+    }
+
+    purchase_orders.append(purchase_order)
+    return jsonify(purchase_order)
+
+
+@app.route('/purchase_orders/<int:id>/items')
+def get_purchase_orders_items(id):
+    for purchase in purchase_orders:
+        if purchase.get("id") == id:
+            return jsonify(purchase['items'])
+
+    return jsonify({"message": "Item not found"}), 404
+
+
+@app.route('/purchase_orders/<int:id>/items', methods=['POST'])
+def create_purchase_orders_items(id):
+    payload = request.get_json()
+    for purchase in purchase_orders:
+        if purchase.get("id") == id:
+            purchase['items'].append(
+                {
+                    'id': payload['id'],
+                    'description': payload['description'],
+                    'price': payload['price']
+                }
+            )
+        return jsonify(purchase['items'])
 
 
 app.run(port=5000, debug=True)
